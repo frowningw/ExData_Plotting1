@@ -1,0 +1,23 @@
+f = "household_power_consumption.txt"
+setwd("~/Desktop")
+readfile = read.table(f, sep=";", header=TRUE, na.strings="?")
+library(lubridate)
+library(dplyr)
+readfile <- readfile %>% 
+  filter(Date == "1/2/2007"|Date == "2/2/2007") %>%
+  select(Date, Time, Sub_metering_1,Sub_metering_2,Sub_metering_3)
+readfile <- mutate(readfile, completetime = paste(Date, Time))
+readfile$completetime <- dmy_hms(readfile$completetime)
+readfile <- readfile[,3:6]
+#plot3
+png("plot3.png", width = 480, height = 480)
+library(tidyr)
+rgather <- readfile%>% 
+  gather(sub_m, metering, -completetime)
+with(rgather,plot(completetime, metering, type = "n",ylab = "Energy sub metering"))
+with(subset(rgather, sub_m=="Sub_metering_1"), lines(completetime, metering))
+with(subset(rgather, sub_m=="Sub_metering_2"), lines(completetime, metering, col="red"))
+with(subset(rgather, sub_m=="Sub_metering_3"), lines(completetime, metering, col="blue"))
+legend("topright", legend = c("Sub_metering_1","Sub_metering_2", "Sub_metering_3"),
+       lty=1,col = c("black","red","blue"))
+dev.off()
